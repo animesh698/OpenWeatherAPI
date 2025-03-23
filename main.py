@@ -129,10 +129,11 @@ class WeatherApp(QWidget):
             temp = int(data['main']['temp'])
             # print(data['weather'][0])
             weather_description = data['weather'][0]['description']
-            #emoji = self.emoji_label(data['weather'][0]['icon'])
+            icon_code = data['weather'][0]['icon']
 
+            emoji = self.get_weather_emoji(icon_code)
             self.temp_label.setText(f"{temp}°C")
-            #self.emoji_label.setText(emoji)
+            self.emoji_label.setText(emoji)
             self.description_label.setText(weather_description.capitalize())
         else:
             self.display_message("City not found!")
@@ -142,6 +143,29 @@ class WeatherApp(QWidget):
 
     def display_weather(self, data):
         print(data)
+
+    def get_weather_emoji(self, icon_code):
+        emoji_map = {
+            "01d": "☀️",
+            "01n": "🌙",
+            "02d": "⛅",
+            "02n": "🌤️",
+            "03d": "🌥️",
+            "03n": "☁️",
+            "04d": "☁️",
+            "04n": "☁️",
+            "09d": "🌧️",
+            "09n": "🌧️",
+            "10d": "🌦️",
+            "10n": "🌧️",
+            "11d": "⛈️",
+            "11n": "⛈️",
+            "13d": "❄️",
+            "13n": "❄️",
+            "50d": "🌫️",
+            "50n": "🌫️",
+        }
+        return emoji_map.get(icon_code, "❓")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
