@@ -136,9 +136,7 @@ class WeatherApp(QWidget):
                 weather_description = data['weather'][0]['description']
                 icon_code = data['weather'][0]['icon']
                 emoji = self.get_weather_emoji(icon_code)
-                self.temp_label.setText(f"{temp}°C")
-                self.emoji_label.setText(emoji)
-                self.description_label.setText(weather_description.capitalize())
+                self.display_weather(temp, emoji, weather_description)
             else:
                 '''
                 Historical weather data API is behind a paywall, so this implementation
@@ -170,17 +168,19 @@ class WeatherApp(QWidget):
 
                     current_date += timedelta(days=1)
 
-                self.temp_label.setText(all_weather_data)
-                self.temp_label.setWordWrap(True)
-
+                self.display_message(all_weather_data)
         else:
-            print("City not found!")
+            self.display_message("City not found!")
 
     def display_message(self, message):
-        pass
+        self.temp_label.setText(message)
+        self.emoji_label.clear()
+        self.description_label.clear()
 
-    def display_weather(self, data):
-        print(data)
+    def display_weather(self, temp, emoji, description):
+        self.temp_label.setText(f"{temp}°C")
+        self.emoji_label.setText(emoji)
+        self.description_label.setText(description.capitalize())
 
     def get_weather_emoji(self, icon_code):
         emoji_map = {
