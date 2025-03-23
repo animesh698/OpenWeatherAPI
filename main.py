@@ -131,19 +131,24 @@ class WeatherApp(QWidget):
             data = city_response.json()
             coord_data = city_coord_response.json()[0]
             lat, lon = coord_data["lat"], coord_data["lon"]
-            # print(lat)
-            # print(lon)
             if not start_date and not end_date:
                 temp = int(data['main']['temp'])
-                # print(temp)
                 weather_description = data['weather'][0]['description']
-                # print(weather_description)
                 icon_code = data['weather'][0]['icon']
                 emoji = self.get_weather_emoji(icon_code)
                 self.temp_label.setText(f"{temp}°C")
                 self.emoji_label.setText(emoji)
                 self.description_label.setText(weather_description.capitalize())
             else:
+                '''
+                Historical weather data API is behind a paywall, so this implementation
+                will not work without a paid subscription (API returns 401). However, the logic is as follows:
+                1. Get the latitude and longitude of the city using the city_coord API.
+                2. Loop through each day in the date range.
+                3. For each day, make a request to the historical weather data API using the latitude and longitude.
+                4. Parse the response and extract the temperature and weather description.
+                5. Display the historical weather data for each day in the date range.
+                '''
                 start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
                 end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
 
@@ -154,7 +159,6 @@ class WeatherApp(QWidget):
                     timestamp = int(current_date.timestamp())
                     historical_data_url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={timestamp}&appid={api_key}"
                     response = requests.get(historical_data_url)
-                    print(response.status_code)
                     if response.status_code == 200:
                         data = response.json()
                         temp = int(data['current']['temp'])
