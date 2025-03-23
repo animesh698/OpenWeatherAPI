@@ -18,9 +18,9 @@ class WeatherApp(QWidget):
         self.end_date_input.setPlaceholderText("End Date (YYYY-MM-DD)")
         
         self.weather_button = QPushButton("Get Weather", self)
-        self.temp_label = QLabel("30℃", self)
-        self.emoji_label = QLabel("☀️", self)
-        self.description_label = QLabel("Sunny", self)
+        self.temp_label = QLabel(self)
+        self.emoji_label = QLabel(self)
+        self.description_label = QLabel(self)
         
         # assign object names for CSS styling
         self.city_label.setObjectName("city_label")
@@ -109,6 +109,39 @@ class WeatherApp(QWidget):
                 font-size: 50px;
             }
         """)
+
+        # connect get weather button to function
+        self.weather_button.clicked.connect(self.get_weather)
+
+    # fetch weather data from API
+    def get_weather(self):
+
+        api_key = "185f53c13ab6ee39bf2805e4edfb7862"
+        city = self.city_input.text()
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+            self.display_weather(data)
+            # print(data)
+            # print(data['main'])
+            temp = int(data['main']['temp'])
+            # print(data['weather'][0])
+            weather_description = data['weather'][0]['description']
+            #emoji = self.emoji_label(data['weather'][0]['icon'])
+
+            self.temp_label.setText(f"{temp}°C")
+            #self.emoji_label.setText(emoji)
+            self.description_label.setText(weather_description.capitalize())
+        else:
+            self.display_message("City not found!")
+
+    def display_message(self, message):
+        pass
+
+    def display_weather(self, data):
+        print(data)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
