@@ -1,5 +1,6 @@
 import sys
 import requests
+from datetime import datetime, timedelta
 from PySide6.QtWidgets import QApplication, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QFrame
 from PySide6.QtCore import Qt
 
@@ -118,25 +119,58 @@ class WeatherApp(QWidget):
 
         api_key = "185f53c13ab6ee39bf2805e4edfb7862"
         city = self.city_input.text()
+        start_date = self.start_date_input.text()
+        end_date = self.end_date_input.text()
         url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
-        response = requests.get(url)
+        city_coord = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={api_key}"
 
-        if response.status_code == 200:
-            data = response.json()
-            self.display_weather(data)
-            # print(data)
-            # print(data['main'])
-            temp = int(data['main']['temp'])
-            # print(data['weather'][0])
-            weather_description = data['weather'][0]['description']
-            icon_code = data['weather'][0]['icon']
+        city_response = requests.get(url)
+        city_coord_response = requests.get(city_coord)
 
-            emoji = self.get_weather_emoji(icon_code)
-            self.temp_label.setText(f"{temp}°C")
-            self.emoji_label.setText(emoji)
-            self.description_label.setText(weather_description.capitalize())
+        if city_response.status_code == 200 and city_coord_response.status_code == 200:
+            data = city_response.json()
+            coord_data = city_coord_response.json()[0]
+            lat, lon = coord_data["lat"], coord_data["lon"]
+            # print(lat)
+            # print(lon)
+            if not start_date and not end_date:
+                temp = int(data['main']['temp'])
+                # print(temp)
+                weather_description = data['weather'][0]['description']
+                # print(weather_description)
+                icon_code = data['weather'][0]['icon']
+                emoji = self.get_weather_emoji(icon_code)
+                self.temp_label.setText(f"{temp}°C")
+                self.emoji_label.setText(emoji)
+                self.description_label.setText(weather_description.capitalize())
+            else:
+                start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+                end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+
+                current_date = start_date_obj
+                all_weather_data = ""
+
+                while current_date <= end_date_obj:
+                    timestamp = int(current_date.timestamp())
+                    historical_data_url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={timestamp}&appid={api_key}"
+                    response = requests.get(historical_data_url)
+                    print(response.status_code)
+                    if response.status_code == 200:
+                        data = response.json()
+                        temp = int(data['current']['temp'])
+                        weather_description = data['current']['weather'][0]['description']
+                        icon_code = data['current']['weather'][0]['icon']
+                        emoji = self.get_weather_emoji(icon_code)
+
+                        all_weather_data += f"{current_date.strftime('%Y-%m-%d')}: {temp}°C {emoji} {weather_description.capitalize()}\n"
+
+                    current_date += timedelta(days=1)
+
+                self.temp_label.setText(all_weather_data)
+                self.temp_label.setWordWrap(True)
+
         else:
-            self.display_message("City not found!")
+            print("City not found!")
 
     def display_message(self, message):
         pass
